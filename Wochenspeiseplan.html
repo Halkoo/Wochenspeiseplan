@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mein Essensplaner</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --accent: #00b894;
+            --secondary: #fab1a0;
+        }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        h2 { color: #2d3436; margin: 20px 0; font-weight: bold; }
+        .container { width: 100%; max-width: 800px; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 80px;
+        }
+        
+        .day-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 8px solid var(--primary);
+        }
+        
+        .day-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .input-group { margin-bottom: 12px; }
+        label { font-size: 0.85rem; color: #636e72; font-weight: bold; display: block; margin-bottom: 4px; }
+        
+        textarea {
+            width: 100%;
+            border: 1px solid #dfe6e9;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 15px;
+            resize: none;
+            box-sizing: border-box;
+            background: #fdfdfd;
+            transition: 0.3s;
+        }
+        
+        textarea:focus { border-color: var(--primary); outline: none; background: white; box-shadow: 0 0 5px rgba(108, 92, 231, 0.2); }
+
+        /* Nachspeise bekommt eine leicht andere Farbe zur Trennung */
+        .dessert-label { color: #e17055; }
+        .dessert-input:focus { border-color: #e17055; box-shadow: 0 0 5px rgba(225, 112, 85, 0.2); }
+
+        .controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(240, 242, 245, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 15px;
+            z-index: 100;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            font-size: 16px;
+        }
+        
+        .btn-save { background: var(--accent); color: white; flex-grow: 1; max-width: 200px; }
+        .btn-clear { background: #ff7675; color: white; }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🍴Wochenspeiseplan</h2>
+
+    <div class="container">
+        <div class="grid" id="app-grid"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-clear" onclick="clearData()">🗑️</button>
+        <button class="btn-save" onclick="saveData()">Speichern 💾</button>
+    </div>
+
+    <script>
+        const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+        const grid = document.getElementById('app-grid');
+
+        // Struktur generieren
+        days.forEach(day => {
+            let card = document.createElement('div');
+            card.className = 'day-card';
+            card.innerHTML = `
+                <div class="day-title">${day} 📅</div>
+                <div class="input-group">
+                    <label>🥘 HAUPTSPEISE</label>
+                    <textarea id="${day}-haupt" rows="2" placeholder="Was kochst du?"></textarea>
+                </div>
+                <div class="input-group">
+                    <label class="dessert-label">🍰 NACHSPEISE</label>
+                    <textarea id="${day}-nach" class="dessert-input" rows="1" placeholder="Etwas Süßes?"></textarea>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Speichern
+        function saveData() {
+            days.forEach(day => {
+                localStorage.setItem(`${day}-haupt`, document.getElementById(`${day}-haupt`).value);
+                localStorage.setItem(`${day}-nach`, document.getElementById(`${day}-nach`).value);
+            });
+            alert("Plan wurde gespeichert! ✨");
+        }
+
+        // Laden
+        function loadData() {
+            days.forEach(day => {
+                const haupt = localStorage.getItem(`${day}-haupt`);
+                const nach = localStorage.getItem(`${day}-nach`);
+                if(haupt) document.getElementById(`${day}-haupt`).value = haupt;
+                if(nach) document.getElementById(`${day}-nach`).value = nach;
+            });
+        }
+
+        function clearData() {
+            if(confirm("Möchtest du wirklich alle Einträge löschen?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
