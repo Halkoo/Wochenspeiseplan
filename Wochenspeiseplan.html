@@ -5,35 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Essensplan</title>
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
-<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; width: 100%; max-width: 800px; }
-        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); }
+        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; }
+        .day-card:active { transform: scale(0.98); }
         .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; }
         .meal-box { margin-bottom: 10px; }
         .label { font-size: 0.8rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
         .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; }
+        
+        /* Einkaufslisten-Stil */
+        .zutaten-liste { display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; background: #fdfdfd; }
+        .zutaten-liste.show { display: block; }
         .loader { margin: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <h2>🍴 Unser Wochenplan</h2>
+    <p style="font-size: 0.8rem; color: #636e72; margin-bottom: 15px;">Tippe auf einen Tag für die Zutaten</p>
     <div id="loading" class="loader">Lade leckere Gerichte...</div>
     <div class="grid" id="app-grid"></div>
 
     <script>
-        // HIER DEINEN KOPIERTEN CSV-LINK ZWISCHEN DIE ANFÜHRUNGSZEICHEN SETZEN:
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv';
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBq (gekürzt für Anzeige)...';
+        // Nutze deinen Original-Link hier im Script:
+        const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv';
 
         async function loadPlan() {
             try {
-                const response = await fetch(csvUrl);
+                const response = await fetch(myFullUrl);
                 const data = await response.text();
-                const rows = data.split('\n').slice(1); // Kopfzeile überspringen
+                const rows = data.split('\n').slice(1); 
                 
+                const grid = document.getElementById('app-grid');
+                grid.innerHTML = '';
+                document.getElementById('loading').style.display = 'none';
+
+                rows.forEach(row => {
+                    // Teilt die Spalten korrekt auf (Tag, Haupt, Nachspeise, Zutaten)
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    
+                    if(cols.length >= 3) {
+                        const card = document.createElement('div');
+                        card.className = 'day-card';
+                        
+                        // Klick-Funktion zum Ein/Ausblenden
+                        card.onclick = function() {
+                            const list = this.querySelector('.zutaten-liste');
+                            list.classList.toggle('show');
+                        };
+
+                        card.innerHTML = `
+                            <div class="day-title">${cols[0].replace(/"/g, '')}</div>
+                            <div class="meal-box">
+                                <div class="label">Hauptspeise</div>
+                                <div class="content">${cols[1]?.replace(/"/g, '') || '-'}</div>
+                            </div>
+                            <div class="meal-box">
+                                <div class="label" style="color:#e17055">Nachspeise</div>
+                                <div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div>
+                            </div>
+                            <div class="zutaten-liste">
+                                <div class="label" style="color:#00b894">🛒 Zutaten:</div>
+                                <div class="content" style="font-size: 0.95rem; line-height: 1.4;">${cols[3]?.replace(/"/g, '') || 'Keine Zutaten gelistet'}</div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    }
+                });
+            } catch (error) {
+                document.getElementById('loading').innerText = 'Fehler beim Laden.';
+            }
+        }
+        window.onload = loadPlan;
+    </script>
+</body>
+</html>
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
                 document.getElementById('loading').style.display = 'none';
