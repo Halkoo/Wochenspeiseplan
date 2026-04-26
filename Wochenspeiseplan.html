@@ -16,8 +16,6 @@
         .meal-box { margin-bottom: 10px; }
         .label { font-size: 0.8rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
         .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; }
-        
-        /* Einkaufslisten-Stil */
         .zutaten-liste { display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; background: #fdfdfd; }
         .zutaten-liste.show { display: block; }
         .loader { margin: 20px; font-weight: bold; color: var(--primary); }
@@ -31,9 +29,8 @@
     <div class="grid" id="app-grid"></div>
 
     <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBq (gekürzt für Anzeige)...';
-        // Nutze deinen Original-Link hier im Script:
-        const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv';
+        // Dein funktionierender Link mit Zeitstempel gegen Verzögerungen
+        const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
 
         async function loadPlan() {
             try {
@@ -46,14 +43,12 @@
                 document.getElementById('loading').style.display = 'none';
 
                 rows.forEach(row => {
-                    // Teilt die Spalten korrekt auf (Tag, Haupt, Nachspeise, Zutaten)
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     if(cols.length >= 3) {
                         const card = document.createElement('div');
                         card.className = 'day-card';
                         
-                        // Klick-Funktion zum Ein/Ausblenden
                         card.onclick = function() {
                             const list = this.querySelector('.zutaten-liste');
                             list.classList.toggle('show');
@@ -81,38 +76,6 @@
                 document.getElementById('loading').innerText = 'Fehler beim Laden.';
             }
         }
-        window.onload = loadPlan;
-    </script>
-</body>
-</html>
-                const grid = document.getElementById('app-grid');
-                grid.innerHTML = '';
-                document.getElementById('loading').style.display = 'none';
-
-                rows.forEach(row => {
-                    const cols = row.split(',');
-                    if(cols.length >= 3) {
-                        const card = document.createElement('div');
-                        card.className = 'day-card';
-                        card.innerHTML = `
-                            <div class="day-title">${cols[0]}</div>
-                            <div class="meal-box">
-                                <div class="label">Hauptspeise</div>
-                                <div class="content">${cols[1] || '-'}</div>
-                            </div>
-                            <div class="meal-box">
-                                <div class="label" style="color:#e17055">Nachspeise</div>
-                                <div class="content">${cols[2] || '-'}</div>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    }
-                });
-            } catch (error) {
-                document.getElementById('loading').innerText = 'Fehler beim Laden der Daten.';
-            }
-        }
-
         window.onload = loadPlan;
     </script>
 </body>
