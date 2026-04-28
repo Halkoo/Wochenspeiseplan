@@ -3,49 +3,49 @@
 <head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Essensplan</title>
+    <title>Essensplan & Anleitung</title>
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; width: 100%; max-width: 800px; }
-        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; }
+        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; margin-bottom: 5px; }
         .day-card:active { transform: scale(0.98); }
         .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; }
         .meal-box { margin-bottom: 10px; }
         .label { font-size: 0.8rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
         .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; }
-        .zutaten-liste { display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; background: #fdfdfd; }
-        .zutaten-liste.show { display: block; }
+        .anleitung-box { display: none; margin-top: 15px; padding: 12px; border-radius: 10px; background: #f9f9ff; border: 1px dashed var(--primary); }
+        .anleitung-box.show { display: block; }
         .loader { margin: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <h2>🍴 Unser Wochenplan</h2>
-    <p style="font-size: 0.8rem; color: #636e72; margin-bottom: 15px;">Tippe auf einen Tag für die Zutaten</p>
-    <div id="loading" class="loader">Lade leckere Gerichte...</div>
+    <p style="font-size: 0.8rem; color: #636e72; margin-bottom: 15px;">Tippe auf einen Tag für die Kochanleitung</p>
+    <div id="loading" class="loader">Lade Rezepte...</div>
     <div class="grid" id="app-grid"></div>
 
     <script>
-        // Dein funktionierender Link mit Zeitstempel gegen Verzögerungen
         const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
 
-       async function loadPlan() {
+        async function loadPlan() {
             try {
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
                 
+                // Filtert Leerzeilen und die Überschrift "Tag" raus
                 const allRows = data.split('\n').filter(row => row.trim() !== '');
-                const rows = allRows.filter(row => !row.toLowerCase().startsWith('tag')); 
+                const rows = allRows.filter(row => !row.toLowerCase().startsWith('tag'));
                 
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
                 document.getElementById('loading').style.display = 'none';
 
                 rows.forEach(row => {
-                    // Trennung der Spalten (auch wenn Kommas im Text sind)
+                    // Trennung der Spalten (CSV-Logik)
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     if(cols.length >= 3) {
@@ -53,7 +53,7 @@
                         card.className = 'day-card';
                         
                         card.onclick = function() {
-                            const list = this.querySelector('.zutaten-liste');
+                            const list = this.querySelector('.anleitung-box');
                             list.classList.toggle('show');
                         };
 
@@ -67,9 +67,9 @@
                                 <div class="label" style="color:#e17055">Nachspeise</div>
                                 <div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div>
                             </div>
-                            <div class="zutaten-liste">
-                                <div class="label" style="color:#00b894">🛒 Zutaten:</div>
-                                <div class="content" style="font-size: 0.95rem; line-height: 1.4;">${cols[3]?.replace(/"/g, '') || 'Keine Zutaten gelistet'}</div>
+                            <div class="anleitung-box">
+                                <div class="label" style="color:#6c5ce7">👨‍🍳 Kochanleitung:</div>
+                                <div class="content" style="font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${cols[3]?.replace(/"/g, '') || 'Noch keine Anleitung eingetragen.'}</div>
                             </div>
                         `;
                         grid.appendChild(card);
