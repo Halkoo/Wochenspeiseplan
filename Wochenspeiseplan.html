@@ -5,33 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Einkaufsliste</title>
     <style>
-        :root { --primary: #00b894; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        :root { --primary: #6c5ce7; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; flex-direction: column; align-items: center; }
         h2 { color: #2d3436; margin-bottom: 10px; }
-        .btn-back { background: #6c5ce7; color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
+        .btn-back { background: var(--primary); color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .list-container { width: 100%; max-width: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .item { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .item { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; }
         .item.checked { background: #f8f9fa; }
         .item.checked span { text-decoration: line-through; color: #b2bec3; }
-        .checkbox { width: 28px; height: 28px; border: 2px solid #dfe6e9; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .item.checked .checkbox { background: var(--primary); border-color: var(--primary); }
-        .item.checked .checkbox::after { content: '✔'; color: white; font-size: 16px; }
-        .loader { margin: 20px; font-weight: bold; color: var(--primary); }
+        .checkbox { width: 25px; height: 25px; border: 2px solid #dfe6e9; border-radius: 7px; margin-right: 15px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .item.checked .checkbox { background: #00b894; border-color: #00b894; }
+        .item.checked .checkbox::after { content: '✔'; color: white; font-size: 14px; }
+        .loader { margin: 20px; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
+
     <h2>🛒 Einkaufsliste</h2>
-    <a href="index.html" class="btn-back">⬅ Zum Wochenplan</a>
+    <a href="Wochenspeiseplan.html" class="btn-back">⬅ Zum Wochenplan</a>
+
     <div id="loading" class="loader">Lade Liste...</div>
     <div class="list-container" id="shopping-list"></div>
 
     <script>
-        // Greift EXAKT auf Blatt 2 zu (gid=1588629255)
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=1588629255&single=true&output=csv&t=' + new Date().getTime();
+        // Der korrekte CSV-Link für deine Tabelle 14N2waZuQo...
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2m9m8jC6j_V2E_0F5Y6zZc7L7N6yS_L_Z8_m-FpP_V7T2-f0G-w_uW-Z9z-X2F_uG-w/pub?gid=0&single=true&output=csv';
 
         async function loadList() {
             try {
-                const response = await fetch(csvUrl);
+                const response = await fetch(csvUrl + '&t=' + new Date().getTime());
                 const data = await response.text();
                 const rows = data.split(/\r?\n/);
                 const container = document.getElementById('shopping-list');
@@ -40,7 +42,8 @@
 
                 rows.forEach(row => {
                     const text = row.trim().replace(/"/g, '');
-                    if (text && text.toLowerCase() !== 'artikel' && text.toLowerCase() !== 'einkaufsliste') {
+                    // Ignoriert leere Zeilen und die Überschrift "Zutaten"
+                    if (text && text.toLowerCase() !== 'zutaten' && text.toLowerCase() !== 'tag') {
                         const div = document.createElement('div');
                         div.className = 'item';
                         div.innerHTML = `<div class="checkbox"></div><span>${text}</span>`;
@@ -48,9 +51,8 @@
                         container.appendChild(div);
                     }
                 });
-                if(container.innerHTML === '') container.innerHTML = '<div style="padding:20px; text-align:center;">Liste ist leer.</div>';
             } catch (e) {
-                document.getElementById('loading').innerText = 'Fehler beim Laden.';
+                document.getElementById('loading').innerText = 'Fehler beim Laden. Bitte Tabelle prüfen!';
             }
         }
         window.onload = loadList;
