@@ -3,67 +3,120 @@
 <head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unser Wochenplan</title>
+    <title>Unser Essensplan</title>
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/706/706164.png">
+    
     <style>
-        :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --accent: #00b894; }
+        :root { 
+            --primary: #6c5ce7; 
+            --secondary: #00b894;
+            --bg: #f0f2f5; 
+            --card: #ffffff; 
+        }
         
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
-        
-        h2 { color: #2d3436; margin-top: 20px; }
-        
-        /* Button zur Einkaufsliste */
-        .btn-link { background: var(--accent); color: white; text-decoration: none; padding: 12px 25px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,184,148,0.2); transition: transform 0.2s; }
-        .btn-link:active { transform: scale(0.95); }
-
-        /* Grid & Cards */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; width: 100%; max-width: 800px; padding-bottom: 50px; }
-        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; }
-        .day-card:active { transform: scale(0.98); }
-        
-        .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .meal-box { margin-bottom: 8px; }
-        .label { font-size: 0.75rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
-        .content { font-size: 1.1rem; color: #2d3436; word-wrap: break-word; }
-
-        /* Das neue "Fenster" für die Anleitung (Modal) */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; overflow-y: auto; box-sizing: border-box; animation: slideIn 0.3s ease-out; }
-        
-        @keyframes slideIn {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0;
         }
 
-        .modal-header { position: sticky; top: 0; background: white; display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 2px solid var(--primary); z-index: 2001; }
-        .modal-body { padding: 20px; }
-        .close-btn { font-size: 2.5rem; cursor: pointer; color: var(--primary); line-height: 1; }
-        
-        .anleitung-text { font-size: 1.1rem; line-height: 1.6; color: #2d3436; white-space: pre-wrap; word-wrap: break-word; }
+        h2 { color: #2d3436; margin-top: 20px; margin-bottom: 10px; }
 
-        .loader { margin: 20px; font-weight: bold; color: var(--primary); }
+        /* Button zur Einkaufsliste */
+        .nav-button {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3);
+            transition: transform 0.2s;
+        }
+        .nav-button:active { transform: scale(0.95); }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 800px; 
+        }
+
+        .day-card { 
+            background: var(--card); 
+            border-radius: 15px; 
+            padding: 15px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border-left: 8px solid var(--primary); 
+            cursor: pointer; 
+            transition: transform 0.1s; 
+            overflow: hidden;
+        }
+        .day-card:active { transform: scale(0.98); }
+
+        .day-title { 
+            font-weight: bold; 
+            font-size: 1.3rem; 
+            color: var(--primary); 
+            margin-bottom: 10px; 
+            border-bottom: 1px solid #eee; 
+            padding-bottom: 5px;
+        }
+
+        .meal-box { margin-bottom: 12px; }
+        .label { 
+            font-size: 0.75rem; 
+            color: #636e72; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+
+        .content { 
+            font-size: 1.1rem; 
+            color: #2d3436; 
+            min-height: 1.2em; 
+            /* Wichtig: Textumbruch für lange Wörter */
+            word-wrap: break-word; 
+            overflow-wrap: break-word; 
+            white-space: normal; 
+        }
+
+        .zutaten-liste { 
+            display: none; 
+            margin-top: 15px; 
+            padding: 12px; 
+            border: 1px dashed var(--primary); 
+            border-radius: 10px; 
+            background: #f9f9ff; 
+        }
+        .zutaten-liste.show { display: block; }
+
+        .loader { margin: 30px; font-weight: bold; color: var(--primary); font-size: 1.1rem; }
+        .hint { font-size: 0.85rem; color: #636e72; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <h2>🍴 Unser Wochenplan</h2>
-    <a href="Einkaufsliste.html" class="btn-link">🛒 Zur Einkaufsliste</a>
     
-    <p style="font-size: 0.85rem; color: #636e72; margin-bottom: 15px;">Tippe einen Tag an für die Anleitung</p>
+    <a href="Einkaufsliste.html" class="nav-button">🛒 Zur Einkaufsliste</a>
     
-    <div id="loading" class="loader">Lade leckere Gerichte...</div>
+    <p class="hint">Tippe auf einen Tag, um Zutaten & Anleitung zu sehen</p>
+    
+    <div id="loading" class="loader">Gerichte werden serviert...</div>
     <div class="grid" id="app-grid"></div>
 
-    <div id="modal">
-        <div class="modal-header">
-            <h2 id="modal-title" style="margin:0; color: var(--primary);">Montag</h2>
-            <div class="close-btn" onclick="closeModal()">&times;</div>
-        </div>
-        <div class="modal-body">
-            <div class="label" style="color: var(--accent); margin-bottom: 10px;">Zutaten & Zubereitung:</div>
-            <div id="modal-content" class="anleitung-text"></div>
-        </div>
-    </div>
-
     <script>
+        // Link zu deiner Google Tabelle
         const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
 
         async function loadPlan() {
@@ -71,61 +124,57 @@
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
                 
-                // Überschrift abschneiden und leere Zeilen entfernen
-                const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
+                // Teilt Zeilen auf, entfernt leere Zeilen und schneidet die Überschrift (Zeile 1) ab
+                const rows = data.split(/\r?\n/).filter(row => row.trim() !== '').slice(1); 
                 
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
                 document.getElementById('loading').style.display = 'none';
 
                 rows.forEach(row => {
+                    // Trennung der Spalten (CSV-sicher)
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
-                    if(cols.length >= 3 && cols[0].replace(/"/g, '').toLowerCase() !== 'tag') {
+                    // Nur Zeilen verarbeiten, die Daten enthalten und keine Überschrift "Tag" sind
+                    const dayName = cols[0]?.replace(/"/g, '').trim();
+                    if(cols.length >= 2 && dayName.toLowerCase() !== 'tag') {
+                        
                         const card = document.createElement('div');
                         card.className = 'day-card';
                         
-                        const tag = cols[0].replace(/"/g, '');
-                        const haupt = cols[1]?.replace(/"/g, '') || '-';
-                        const nach = cols[2]?.replace(/"/g, '') || '-';
-                        const info = cols[3]?.replace(/"/g, '') || 'Keine Anleitung hinterlegt.';
-
+                        // Klick-Funktion für Zutaten
                         card.onclick = function() {
-                            openModal(tag, info);
+                            const list = this.querySelector('.zutaten-liste');
+                            list.classList.toggle('show');
                         };
 
                         card.innerHTML = `
-                            <div class="day-title">${tag}</div>
+                            <div class="day-title">${dayName}</div>
                             <div class="meal-box">
                                 <div class="label">Hauptspeise</div>
-                                <div class="content">${haupt}</div>
+                                <div class="content">${cols[1]?.replace(/"/g, '') || '-'}</div>
                             </div>
                             <div class="meal-box">
-                                <div class="label" style="color:#e17055">Nachspeise</div>
-                                <div class="content">${nach}</div>
+                                <div class="label" style="color:#e17055">Nachspeise / Snack</div>
+                                <div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div>
                             </div>
-                            <div style="font-size: 0.8rem; color: var(--primary); text-align: right; margin-top: 5px;">Anleitung öffnen →</div>
+                            <div class="zutaten-liste">
+                                <div class="label" style="color:var(--primary)">👨‍🍳 Zutaten & Notizen:</div>
+                                <div class="content" style="font-size: 0.95rem; line-height: 1.5; margin-top: 5px;">
+                                    ${cols[3]?.replace(/"/g, '').replace(/\n/g, '<br>') || 'Keine Details eingetragen.'}
+                                </div>
+                            </div>
                         `;
                         grid.appendChild(card);
                     }
                 });
             } catch (error) {
-                document.getElementById('loading').innerText = 'Fehler beim Laden. Bitte Internet prüfen.';
+                console.error(error);
+                document.getElementById('loading').innerText = 'Fehler beim Laden. Prüfe die Internetverbindung.';
             }
         }
-
-        function openModal(title, text) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-content').innerText = text;
-            document.getElementById('modal').style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Verhindert Scrollen im Hintergrund
-        }
-
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Reaktiviert Scrollen
-        }
-
+        
+        // Startet das Laden
         window.onload = loadPlan;
     </script>
 </body>
