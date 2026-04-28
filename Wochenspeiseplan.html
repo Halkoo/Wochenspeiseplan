@@ -37,7 +37,8 @@
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
                 
-                const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
+                const allRows = data.split('\n').filter(row => row.trim() !== '');
+                const rows = allRows.filter(row => !row.toLowerCase().startsWith('tag')); 
                 
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
