@@ -3,106 +3,90 @@
 <head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wochenplan & Liste</title>
+    <title>Unser Wochenplan</title>
     <style>
-        :root { --primary: #6c5ce7; --secondary: #00b894; --bg: #f0f2f5; --card: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
-        .container { width: 100%; max-width: 800px; }
-        h2 { color: #2d3436; text-align: center; margin-top: 30px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Wochenplan Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 40px; }
-        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; }
-        .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 8px; }
-        .meal { font-size: 1rem; color: #2d3436; margin-bottom: 4px; }
-        .zutaten { display: none; font-size: 0.9rem; color: #636e72; background: #f9f9ff; padding: 10px; border-radius: 8px; margin-top: 10px; line-height: 1.4; border: 1px dashed #ccc; }
-        .zutaten.show { display: block; }
-
-        /* Einkaufsliste Style */
-        .list-box { background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 50px; }
-        .einkauf-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; }
-        .einkauf-item.checked { background: #f1f2f6; text-decoration: line-through; color: #b2bec3; }
-        .checkbox { width: 24px; height: 24px; border: 2px solid #dfe6e9; border-radius: 6px; margin-right: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .einkauf-item.checked .checkbox { background: var(--secondary); border-color: var(--secondary); }
-        .einkauf-item.checked .checkbox::after { content: '✔'; color: white; font-size: 14px; }
+        h2 { color: #2d3436; margin-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; width: 100%; max-width: 800px; }
         
-        .loader { text-align: center; padding: 20px; color: var(--primary); font-weight: bold; }
+        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; overflow: hidden; }
+        .day-card:active { transform: scale(0.98); }
+        
+        .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; }
+        .meal-box { margin-bottom: 10px; }
+        
+        .label { font-size: 0.8rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
+        .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; word-wrap: break-word; overflow-wrap: break-word; }
+        
+        .zutaten-liste { display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; background: #fdfdfd; }
+        .zutaten-liste.show { display: block; }
+        
+        .loader { margin: 20px; font-weight: bold; color: var(--primary); }
+        .btn-link { background: #00b894; color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; margin: 15px 0; font-weight: bold; box-shadow: 0 4px 10px rgba(0,184,148,0.3); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>🍴 Unser Wochenplan</h2>
-        <div id="plan-loader" class="loader">Lade Leckereien...</div>
-        <div class="grid" id="plan-grid"></div>
+    <h2>🍴 Unser Wochenplan</h2>
+    <p style="font-size: 0.8rem; color: #636e72; margin-bottom: 15px;">Tippe auf einen Tag für die Zutaten</p>
+    
+    <a href="Einkaufsliste.html" class="btn-link">🛒 Zur Einkaufsliste</a>
 
-        <h2>🛒 Einkaufsliste</h2>
-        <div id="list-loader" class="loader">Lade Liste...</div>
-        <div class="list-box" id="shopping-list"></div>
-    </div>
+    <div id="loading" class="loader">Lade leckere Gerichte...</div>
+    <div class="grid" id="app-grid"></div>
 
     <script>
-        // Deine Tabellen-ID
-        const sheetID = '2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA';
-        
-        // Links für die zwei Blätter (gid=0 ist Blatt 1, gid=1588629255 ist meistens Blatt 2)
-        // Falls die Liste nicht lädt, müssen wir die gid kurz prüfen.
-        const planUrl = `https://docs.google.com/spreadsheets/d/e/${sheetID}/pub?gid=0&single=true&output=csv`;
-        const listUrl = `https://docs.google.com/spreadsheets/d/e/${sheetID}/pub?gid=1588629255&single=true&output=csv`;
+        const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
 
-        // Funktion zum Laden des Wochenplans
-        async function fetchPlan() {
+        async function loadPlan() {
             try {
-                const resp = await fetch(planUrl + '&t=' + Date.now());
-                const csv = await resp.text();
-                const rows = csv.split('\n').slice(1).filter(r => r.trim() !== '');
-                const grid = document.getElementById('plan-grid');
+                const response = await fetch(myFullUrl);
+                const data = await response.text();
+                
+                // Wir nehmen alle Zeilen außer der ersten (Überschrift)
+                const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
+                
+                const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
-                document.getElementById('plan-loader').style.display = 'none';
+                document.getElementById('loading').style.display = 'none';
 
                 rows.forEach(row => {
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if(cols.length >= 2 && cols[0].replace(/"/g,'').toLowerCase() !== 'tag') {
+                    
+                    if(cols.length >= 3) {
                         const card = document.createElement('div');
                         card.className = 'day-card';
-                        card.onclick = function() { this.querySelector('.zutaten').classList.toggle('show'); };
+                        
+                        card.onclick = function() {
+                            const list = this.querySelector('.zutaten-liste');
+                            list.classList.toggle('show');
+                        };
+
                         card.innerHTML = `
-                            <div class="day-title">${cols[0].replace(/"/g,'')}</div>
-                            <div class="meal"><b>H:</b> ${cols[1].replace(/"/g,'')}</div>
-                            <div class="meal"><b>N:</b> ${cols[2]?.replace(/"/g,'') || '-'}</div>
-                            <div class="zutaten"><b>Zutaten & Anleitung:</b><br>${cols[3]?.replace(/"/g,'').replace(/\n/g, '<br>') || 'Keine Infos'}</div>
+                            <div class="day-title">${cols[0].replace(/"/g, '')}</div>
+                            <div class="meal-box">
+                                <div class="label">Hauptspeise</div>
+                                <div class="content">${cols[1]?.replace(/"/g, '') || '-'}</div>
+                            </div>
+                            <div class="meal-box">
+                                <div class="label" style="color:#e17055">Nachspeise</div>
+                                <div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div>
+                            </div>
+                            <div class="zutaten-liste">
+                                <div class="label" style="color:#00b894">🛒 Zutaten & Anleitung:</div>
+                                <div class="content" style="font-size: 0.95rem; line-height: 1.4;">${cols[3]?.replace(/"/g, '') || 'Keine Infos'}</div>
+                            </div>
                         `;
                         grid.appendChild(card);
                     }
                 });
-            } catch (e) { console.error("Plan Fehler", e); }
+            } catch (error) {
+                document.getElementById('loading').innerText = 'Fehler beim Laden.';
+            }
         }
-
-        // Funktion zum Laden der Einkaufsliste
-        async function fetchList() {
-            try {
-                const resp = await fetch(listUrl + '&t=' + Date.now());
-                const csv = await resp.text();
-                const rows = csv.split('\n').slice(1).filter(r => r.trim() !== ''); // .slice(1) überspringt A1
-                const list = document.getElementById('shopping-list');
-                list.innerHTML = '';
-                document.getElementById('list-loader').style.display = 'none';
-
-                rows.forEach(row => {
-                    const text = row.trim().replace(/"/g,'');
-                    if(text && text.toLowerCase() !== 'artikel') {
-                        const item = document.createElement('div');
-                        item.className = 'einkauf-item';
-                        item.innerHTML = `<div class="checkbox"></div><span>${text}</span>`;
-                        item.onclick = function() { this.classList.toggle('checked'); };
-                        list.appendChild(item);
-                    }
-                });
-            } catch (e) { console.error("Listen Fehler", e); }
-        }
-
-        // Beides beim Start ausführen
-        window.onload = () => { fetchPlan(); fetchList(); };
+        window.onload = loadPlan;
     </script>
 </body>
 </html>
