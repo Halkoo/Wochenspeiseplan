@@ -3,28 +3,30 @@
 <head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unser Wochenplan</title>
+    <title>Essensplan</title>
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        
-        h2 { color: #2d3436; margin-bottom: 5px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; width: 100%; max-width: 800px; }
         
-        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; overflow: hidden; }
+        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; overflow: hidden; margin-bottom: 5px; }
         .day-card:active { transform: scale(0.98); }
         
         .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; }
         .meal-box { margin-bottom: 10px; }
         
+        /* Das sind die farbigen Labels wie im alten Design */
         .label { font-size: 0.8rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
-        .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; word-wrap: break-word; overflow-wrap: break-word; }
+        .label.nachspeise { color: #e17055; }
+        .label.zutaten { color: #00b894; }
+        
+        .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; word-wrap: break-word; }
         
         .zutaten-liste { display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; background: #fdfdfd; }
         .zutaten-liste.show { display: block; }
         
         .loader { margin: 20px; font-weight: bold; color: var(--primary); }
-        .btn-link { background: #00b894; color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; margin: 15px 0; font-weight: bold; box-shadow: 0 4px 10px rgba(0,184,148,0.3); }
+        .btn-link { background: #00b894; color: white; text-decoration: none; padding: 12px 25px; border-radius: 12px; margin: 15px 0; font-weight: bold; box-shadow: 0 4px 10px rgba(0,184,148,0.3); display: inline-block; }
     </style>
 </head>
 <body>
@@ -45,7 +47,7 @@
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
                 
-                // Wir nehmen alle Zeilen außer der ersten (Überschrift)
+                // Wir schneiden die erste Zeile (Überschrift) ab
                 const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
                 
                 const grid = document.getElementById('app-grid');
@@ -71,11 +73,11 @@
                                 <div class="content">${cols[1]?.replace(/"/g, '') || '-'}</div>
                             </div>
                             <div class="meal-box">
-                                <div class="label" style="color:#e17055">Nachspeise</div>
+                                <div class="label nachspeise">Nachspeise</div>
                                 <div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div>
                             </div>
                             <div class="zutaten-liste">
-                                <div class="label" style="color:#00b894">🛒 Zutaten & Anleitung:</div>
+                                <div class="label zutaten">🛒 Zutaten & Anleitung:</div>
                                 <div class="content" style="font-size: 0.95rem; line-height: 1.4;">${cols[3]?.replace(/"/g, '') || 'Keine Infos'}</div>
                             </div>
                         `;
