@@ -37,8 +37,7 @@
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
                 
-                // .slice(1) wurde entfernt, damit Montag (Zeile 1) angezeigt wird
-                const rows = data.split('\n'); 
+                const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
                 
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
