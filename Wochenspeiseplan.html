@@ -116,19 +116,19 @@
                         `;
                         planGrid.appendChild(card);
 
-                        // 2. Zutaten für Einkaufsliste extrahieren
-                        if (zutaten) {
-                            const liste = zutaten.split(',');
-                            liste.forEach(z => {
-                                if(z.trim() !== "") {
-                                    const item = document.createElement('div');
-                                    item.className = 'list-item';
-                                    item.innerHTML = `<div class="checkbox"></div><span>${z.trim()}</span>`;
-                                    item.onclick = function() { this.classList.toggle('checked'); };
-                                    shopGrid.appendChild(item);
-                                }
-                            });
-                        }
+                       // 2. Zutaten für Einkaufsliste extrahieren
+if (zutaten && zutaten.trim() !== "" && zutaten.toLowerCase() !== 'zutaten') {
+    const einzelTeile = zutaten.split(','); // Trennt bei Komma
+    einzelTeile.forEach(z => {
+        if(z.trim() !== "") {
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.innerHTML = `<div class="checkbox"></div><span>${z.trim()}</span>`;
+            item.onclick = function() { this.classList.toggle('checked'); };
+            shopGrid.appendChild(item);
+        }
+    });
+}
                     }
                 });
             } catch (e) { document.getElementById('loading').innerText = 'Fehler beim Laden.'; }
