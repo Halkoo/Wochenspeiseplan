@@ -32,17 +32,20 @@
         // Dein funktionierender Link mit Zeitstempel gegen Verzögerungen
         const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
 
-        async function loadPlan() {
+       async function loadPlan() {
             try {
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
-                const rows = data.split('\n').slice(1); 
+                
+                // .slice(1) wurde entfernt, damit Montag (Zeile 1) angezeigt wird
+                const rows = data.split('\n'); 
                 
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = '';
                 document.getElementById('loading').style.display = 'none';
 
                 rows.forEach(row => {
+                    // Trennung der Spalten (auch wenn Kommas im Text sind)
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     if(cols.length >= 3) {
