@@ -1,5 +1,66 @@
 <!DOCTYPE html>
 <html lang="de">
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unser Wochenplan</title>
+    <style>
+        :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        h2 { color: #2d3436; margin-top: 10px; }
+        .btn-link { background: #00b894; color: white; text-decoration: none; padding: 12px 25px; border-radius: 12px; margin: 15px 0; font-weight: bold; box-shadow: 0 4px 10px rgba(0,184,148,0.3); display: flex; align-items: center; gap: 8px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; max-width: 800px; }
+        .day-card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-left: 10px solid var(--primary); cursor: pointer; transition: 0.2s; position: relative; }
+        .day-title { font-weight: bold; font-size: 1.4rem; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
+        .meal-box { margin-bottom: 12px; }
+        .label { font-size: 0.75rem; color: #636e72; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .label.nachspeise { color: #e17055; }
+        .content { font-size: 1.15rem; color: #2d3436; font-weight: 500; word-wrap: break-word; }
+        .zutaten-liste { display: none; margin-top: 15px; padding: 15px; border-radius: 12px; border: 1.5px dashed #6c5ce7; background: #f9f9ff; }
+        .zutaten-liste.show { display: block; }
+        .loader { margin: 30px; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <h2>🍴 Unser Wochenplan</h2>
+    <a href="Einkaufsliste.html" class="btn-link">🛒 Zur Einkaufsliste</a>
+    <div id="loading" class="loader">Lade leckere Gerichte...</div>
+    <div class="grid" id="app-grid"></div>
+
+    <script>
+        const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?output=csv';
+        async function loadPlan() {
+            try {
+                const response = await fetch(myFullUrl + '&t=' + Date.now());
+                const data = await response.text();
+                const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
+                const grid = document.getElementById('app-grid');
+                grid.innerHTML = '';
+                document.getElementById('loading').style.display = 'none';
+                rows.forEach(row => {
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if(cols.length >= 3) {
+                        const card = document.createElement('div');
+                        card.className = 'day-card';
+                        card.onclick = function() { this.querySelector('.zutaten-liste').classList.toggle('show'); };
+                        card.innerHTML = `
+                            <div class="day-title">${cols[0].replace(/"/g, '')}</div>
+                            <div class="meal-box"><div class="label">HAUPTSPEISE</div><div class="content">${cols[1]?.replace(/"/g, '') || '-'}</div></div>
+                            <div class="meal-box"><div class="label nachspeise">NACHSPEISE</div><div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div></div>
+                            <div class="zutaten-liste"><div class="label" style="color:#6c5ce7;">👨‍🍳 ANLEITUNG:</div><div class="content">${cols[3]?.replace(/"/g, '') || 'Keine Info'}</div></div>
+                        `;
+                        grid.appendChild(card);
+                    }
+                });
+            } catch (e) { document.getElementById('loading').innerText = 'Fehler beim Laden!'; }
+        }
+        window.onload = loadPlan;
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,43 +68,35 @@
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        h2 { color: #2d3436; margin-bottom: 10px; }
-        .btn-back { background: var(--primary); color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #2d3436; }
+        .btn-back { background: var(--primary); color: white; text-decoration: none; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; display: inline-block; }
         .list-container { width: 100%; max-width: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .item { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; }
-        .item.checked { background: #f8f9fa; }
+        .item { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
         .item.checked span { text-decoration: line-through; color: #b2bec3; }
-        .checkbox { width: 25px; height: 25px; border: 2px solid #dfe6e9; border-radius: 7px; margin-right: 15px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .checkbox { width: 25px; height: 25px; border: 2px solid #dfe6e9; border-radius: 7px; margin-right: 15px; display: flex; align-items: center; justify-content: center; }
         .item.checked .checkbox { background: #00b894; border-color: #00b894; }
-        .item.checked .checkbox::after { content: '✔'; color: white; font-size: 14px; }
-        .loader { margin: 20px; color: var(--primary); font-weight: bold; }
+        .item.checked .checkbox::after { content: '✔'; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <h2>🛒 Einkaufsliste</h2>
     <a href="Wochenspeiseplan.html" class="btn-back">⬅ Zum Wochenplan</a>
-
-    <div id="loading" class="loader">Lade Liste...</div>
+    <div id="loading">Lade Liste...</div>
     <div class="list-container" id="shopping-list"></div>
 
     <script>
-        // Der korrekte CSV-Link für deine Tabelle 14N2waZuQo...
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2m9m8jC6j_V2E_0F5Y6zZc7L7N6yS_L_Z8_m-FpP_V7T2-f0G-w_uW-Z9z-X2F_uG-w/pub?gid=0&single=true&output=csv';
-
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2m9m8jC6j_V2E_0F5Y6zZc7L7N6yS_L_Z8_m-FpP_V7T2-f0G-w_uW-Z9z-X2F_uG-w/pub?output=csv';
         async function loadList() {
             try {
-                const response = await fetch(csvUrl + '&t=' + new Date().getTime());
+                const response = await fetch(csvUrl + '&t=' + Date.now());
                 const data = await response.text();
-                const rows = data.split(/\r?\n/);
+                const rows = data.split('\n').filter(row => row.trim() !== '');
                 const container = document.getElementById('shopping-list');
                 container.innerHTML = '';
                 document.getElementById('loading').style.display = 'none';
-
                 rows.forEach(row => {
                     const text = row.trim().replace(/"/g, '');
-                    // Ignoriert leere Zeilen und die Überschrift "Zutaten"
-                    if (text && text.toLowerCase() !== 'zutaten' && text.toLowerCase() !== 'tag') {
+                    if (text && !['tag', 'hauptspeise', 'nachspeise', 'zutaten'].includes(text.toLowerCase())) {
                         const div = document.createElement('div');
                         div.className = 'item';
                         div.innerHTML = `<div class="checkbox"></div><span>${text}</span>`;
@@ -51,9 +104,7 @@
                         container.appendChild(div);
                     }
                 });
-            } catch (e) {
-                document.getElementById('loading').innerText = 'Fehler beim Laden. Bitte Tabelle prüfen!';
-            }
+            } catch (e) { document.getElementById('loading').innerText = 'Fehler beim Laden!'; }
         }
         window.onload = loadList;
     </script>
