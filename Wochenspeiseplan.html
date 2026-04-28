@@ -8,19 +8,19 @@
         :root { --primary: #6c5ce7; --secondary: #00b894; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Navigation / Umschalter */
-        .nav-container { margin-bottom: 20px; }
-        .btn-toggle { background: var(--secondary); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,184,148,0.3); font-size: 1rem; }
+        h2 { color: #2d3436; margin-top: 10px; font-size: 1.5rem; }
+        
+        .nav-container { margin-bottom: 20px; width: 100%; max-width: 400px; }
+        .btn-toggle { background: var(--secondary); color: white; border: none; padding: 14px; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,184,148,0.3); font-size: 1.1rem; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-toggle.plan-mode { background: var(--primary); box-shadow: 0 4px 10px rgba(108,92,231,0.3); }
 
-        /* Bereiche */
         #plan-view, #list-view { width: 100%; max-width: 800px; display: none; }
         .active { display: block !important; }
 
-        /* Wochenplan Styles */
+        /* Plan Design */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .day-card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-left: 10px solid var(--primary); cursor: pointer; margin-bottom: 10px; }
-        .day-title { font-weight: bold; font-size: 1.4rem; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; }
+        .day-title { font-weight: bold; font-size: 1.4rem; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
         .meal-box { margin-bottom: 12px; }
         .label { font-size: 0.75rem; color: #636e72; font-weight: 800; text-transform: uppercase; }
         .label.nachspeise { color: #e17055; }
@@ -28,15 +28,16 @@
         .zutaten-liste { display: none; margin-top: 15px; padding: 15px; border-radius: 12px; border: 1.5px dashed #6c5ce7; background: #f9f9ff; }
         .zutaten-liste.show { display: block; }
 
-        /* Einkaufsliste Styles */
-        .list-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .list-item { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        /* Listen Design */
+        .list-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; margin: 0 auto; }
+        .list-item { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; }
+        .list-item.checked { background: #f8f9fa; }
         .list-item.checked span { text-decoration: line-through; color: #b2bec3; }
-        .checkbox { width: 25px; height: 25px; border: 2px solid #dfe6e9; border-radius: 7px; margin-right: 15px; flex-shrink: 0; }
+        .checkbox { width: 26px; height: 26px; border: 2px solid #dfe6e9; border-radius: 8px; margin-right: 15px; flex-shrink: 0; }
         .list-item.checked .checkbox { background: var(--secondary); border-color: var(--secondary); display: flex; align-items: center; justify-content: center; }
-        .list-item.checked .checkbox::after { content: '✔'; color: white; font-size: 14px; }
+        .list-item.checked .checkbox::after { content: '✔'; color: white; font-size: 15px; font-weight: bold; }
 
-        .loader { margin: 30px; font-weight: bold; color: var(--primary); }
+        .loader { margin: 40px; font-weight: bold; color: var(--primary); text-align: center; }
     </style>
 </head>
 <body>
@@ -44,13 +45,14 @@
     <h2 id="main-title">🍴 Unser Wochenplan</h2>
 
     <div class="nav-container">
-        <button id="toggleBtn" class="btn-toggle" onclick="toggleMode()">🛒 Zur Einkaufsliste</button>
+        <button id="toggleBtn" class="btn-toggle" onclick="toggleMode()">
+            <span id="btn-icon">🛒</span> <span id="btn-text">Zur Einkaufsliste</span>
+        </button>
     </div>
 
-    <div id="loading" class="loader">Lade Daten...</div>
+    <div id="loading" class="loader">Lade Daten aus Google...</div>
 
     <div id="plan-view" class="active">
-        <p style="text-align:center; font-size: 0.9rem; color: #636e72; margin-bottom: 20px;">Tippe einen Tag an für die Anleitung</p>
         <div class="grid" id="plan-grid"></div>
     </div>
 
@@ -59,26 +61,29 @@
     </div>
 
     <script>
-        const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
+        // Link zum Plan (gid=0)
+        const planUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
+        
+        // Link zur Liste (gid=1056757043)
+        const listUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=1056757043&single=true&output=csv&t=' + new Date().getTime();
+
         let isPlanMode = true;
 
         function toggleMode() {
             isPlanMode = !isPlanMode;
-            const planView = document.getElementById('plan-view');
-            const listView = document.getElementById('list-view');
+            document.getElementById('plan-view').classList.toggle('active');
+            document.getElementById('list-view').classList.toggle('active');
             const btn = document.getElementById('toggleBtn');
             const title = document.getElementById('main-title');
-
-            if (isPlanMode) {
-                planView.classList.add('active');
-                listView.classList.remove('active');
-                btn.innerText = "🛒 Zur Einkaufsliste";
+            
+            if(isPlanMode) {
+                document.getElementById('btn-text').innerText = "Zur Einkaufsliste";
+                document.getElementById('btn-icon').innerText = "🛒";
                 btn.classList.remove('plan-mode');
                 title.innerText = "🍴 Unser Wochenplan";
             } else {
-                planView.classList.remove('active');
-                listView.classList.add('active');
-                btn.innerText = "📅 Zum Wochenplan";
+                document.getElementById('btn-text').innerText = "Zum Wochenplan";
+                document.getElementById('btn-icon').innerText = "📅";
                 btn.classList.add('plan-mode');
                 title.innerText = "🛒 Einkaufsliste";
             }
@@ -86,52 +91,50 @@
 
         async function loadData() {
             try {
-                const response = await fetch(url);
-                const data = await response.text();
-                const rows = data.split('\n').slice(1).filter(row => row.trim() !== '');
-                
+                // 1. Plan laden
+                const resPlan = await fetch(planUrl);
+                const dataPlan = await resPlan.text();
+                const rowsPlan = dataPlan.split('\n').slice(1).filter(r => r.trim() !== '');
                 const planGrid = document.getElementById('plan-grid');
-                const shopGrid = document.getElementById('shopping-grid');
                 planGrid.innerHTML = '';
-                shopGrid.innerHTML = '';
-                document.getElementById('loading').style.display = 'none';
 
-                rows.forEach(row => {
+                rowsPlan.forEach(row => {
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     if (cols.length >= 3) {
-                        const tag = cols[0].replace(/"/g, '');
-                        const haupt = cols[1]?.replace(/"/g, '') || '-';
-                        const nach = cols[2]?.replace(/"/g, '') || '-';
-                        const zutaten = cols[3]?.replace(/"/g, '') || '';
-
-                        // 1. Karte für Wochenplan erstellen
                         const card = document.createElement('div');
                         card.className = 'day-card';
                         card.onclick = function() { this.querySelector('.zutaten-liste').classList.toggle('show'); };
                         card.innerHTML = `
-                            <div class="day-title">${tag}</div>
-                            <div class="meal-box"><div class="label">HAUPTSPEISE</div><div class="content">${haupt}</div></div>
-                            <div class="meal-box"><div class="label nachspeise">NACHSPEISE</div><div class="content">${nach}</div></div>
-                            <div class="zutaten-liste"><div class="label" style="color:#6c5ce7">👨‍🍳 Anleitung:</div><div class="content">${zutaten || 'Keine Infos'}</div></div>
+                            <div class="day-title">${cols[0].replace(/"/g, '')}</div>
+                            <div class="meal-box"><div class="label">HAUPTSPEISE</div><div class="content">${cols[1]?.replace(/"/g, '') || '-'}</div></div>
+                            <div class="meal-box"><div class="label nachspeise">NACHSPEISE</div><div class="content">${cols[2]?.replace(/"/g, '') || '-'}</div></div>
+                            <div class="zutaten-liste"><div class="label" style="color:#6c5ce7">👨‍🍳 Anleitung:</div><div class="content">${cols[3]?.replace(/"/g, '') || 'Keine Infos'}</div></div>
                         `;
                         planGrid.appendChild(card);
-
-                       // 2. Zutaten für Einkaufsliste extrahieren
-if (zutaten && zutaten.trim() !== "" && zutaten.toLowerCase() !== 'zutaten') {
-    const einzelTeile = zutaten.split(','); // Trennt bei Komma
-    einzelTeile.forEach(z => {
-        if(z.trim() !== "") {
-            const item = document.createElement('div');
-            item.className = 'list-item';
-            item.innerHTML = `<div class="checkbox"></div><span>${z.trim()}</span>`;
-            item.onclick = function() { this.classList.toggle('checked'); };
-            shopGrid.appendChild(item);
-        }
-    });
-}
                     }
                 });
-            } catch (e) { document.getElementById('loading').innerText = 'Fehler beim Laden.'; }
+
+                // 2. Einkaufsliste laden
+                const resList = await fetch(listUrl);
+                const dataList = await resList.text();
+                const rowsList = dataList.split('\n').filter(r => r.trim() !== '');
+                const shopGrid = document.getElementById('shopping-grid');
+                shopGrid.innerHTML = '';
+
+                rowsList.forEach(row => {
+                    const cleanRow = row.replace(/"/g, '').trim();
+                    // Wir filtern Überschriften aus
+                    if(cleanRow && !["artikel", "zutaten", "tag", "nachspeise", "hauptspeise"].includes(cleanRow.toLowerCase())) {
+                        const div = document.createElement('div');
+                        div.className = 'list-item';
+                        div.innerHTML = `<div class="checkbox"></div><span>${cleanRow}</span>`;
+                        div.onclick = function() { this.classList.toggle('checked'); };
+                        shopGrid.appendChild(div);
+                    }
+                });
+
+                document.getElementById('loading').style.display = 'none';
+            } catch (e) { document.getElementById('loading').innerText = 'Fehler beim Laden der Daten.'; }
         }
         window.onload = loadData;
     </script>
