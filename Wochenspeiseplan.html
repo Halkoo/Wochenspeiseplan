@@ -3,28 +3,22 @@
 <head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Essensplan</title>
+    <title>Unser Wochenplan</title>
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        h2 { color: #2d3436; margin-bottom: 5px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; width: 100%; max-width: 800px; }
-        
-        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; overflow: hidden; margin-bottom: 5px; }
+        .day-card { background: var(--card); border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); cursor: pointer; transition: transform 0.1s; overflow: hidden; }
         .day-card:active { transform: scale(0.98); }
-        
         .day-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; }
         .meal-box { margin-bottom: 10px; }
-        
-        /* Das sind die farbigen Labels wie im alten Design */
         .label { font-size: 0.8rem; color: #636e72; font-weight: bold; text-transform: uppercase; }
         .label.nachspeise { color: #e17055; }
         .label.zutaten { color: #00b894; }
-        
         .content { font-size: 1.1rem; color: #2d3436; min-height: 1.2em; word-wrap: break-word; }
-        
         .zutaten-liste { display: none; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; background: #fdfdfd; }
         .zutaten-liste.show { display: block; }
-        
         .loader { margin: 20px; font-weight: bold; color: var(--primary); }
         .btn-link { background: #00b894; color: white; text-decoration: none; padding: 12px 25px; border-radius: 12px; margin: 15px 0; font-weight: bold; box-shadow: 0 4px 10px rgba(0,184,148,0.3); display: inline-block; }
     </style>
@@ -34,20 +28,19 @@
     <h2>🍴 Unser Wochenplan</h2>
     <p style="font-size: 0.8rem; color: #636e72; margin-bottom: 15px;">Tippe auf einen Tag für die Zutaten</p>
     
-    <a href="Einkaufsliste.html" class="btn-link">🛒 Zur Einkaufsliste</a>
+    <a href="https://halkoo.github.io/Einkaufsliste/Einkaufsliste.html" class="btn-link">🛒 Zur Einkaufsliste</a>
 
     <div id="loading" class="loader">Lade leckere Gerichte...</div>
     <div class="grid" id="app-grid"></div>
 
     <script>
+        // Link zu deinem Wochenplan-Blatt
         const myFullUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2Wor16jblAtFPZRcn3JAizIATOy7reZWFpyQxaNh4x3p1aLIB-Wjt_k4S6IXbPo1PldYB5GBqQ8ZA/pub?gid=0&single=true&output=csv&t=' + new Date().getTime();
 
         async function loadPlan() {
             try {
                 const response = await fetch(myFullUrl);
                 const data = await response.text();
-                
-                // Wir schneiden die erste Zeile (Überschrift) ab
                 const rows = data.split('\n').slice(1).filter(row => row.trim() !== ''); 
                 
                 const grid = document.getElementById('app-grid');
@@ -55,17 +48,13 @@
                 document.getElementById('loading').style.display = 'none';
 
                 rows.forEach(row => {
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    
+                    const cols = row.split(/,(?=(?:(?:[^**]*"){2})*[^**]*$)/);
                     if(cols.length >= 3) {
                         const card = document.createElement('div');
                         card.className = 'day-card';
-                        
                         card.onclick = function() {
-                            const list = this.querySelector('.zutaten-liste');
-                            list.classList.toggle('show');
+                            this.querySelector('.zutaten-liste').classList.toggle('show');
                         };
-
                         card.innerHTML = `
                             <div class="day-title">${cols[0].replace(/"/g, '')}</div>
                             <div class="meal-box">
